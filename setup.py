@@ -42,5 +42,5 @@ setup(name="Sketchup",
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules)
 
-#install_name_tool -change "@rpath/SketchUpAPI.framework/Versions/Current/SketchUpAPI" "@loader_path/SketchUpAPI.framework/Versions/Current/SketchUpAPI" sketchup.so
-#install_name_tool -change "@rpath/SketchUpAPI.framework/Versions/A/SketchUpAPI" "@loader_path/SketchUpAPI.framework/Versions/A/SketchUpAPI" sketchup.cpython-35m-darwin.so
+#install_name_tool -change "@rpath/SketchUpAPI.framework/Versions/Current/SketchUpAPI" "@loader_path/SketchUpAPI.framework/Versions/Current/SketchUpAPI" sketchup.cpython-310-darwin.so
+#install_name_tool -change "@rpath/SketchUpAPI.framework/Versions/A/SketchUpAPI" "@loader_path/SketchUpAPI.framework/Versions/A/SketchUpAPI" sketchup.cpython-310-darwin.so
