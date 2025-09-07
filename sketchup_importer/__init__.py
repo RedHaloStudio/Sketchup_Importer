@@ -38,8 +38,8 @@ from .SKPutil import *
 bl_info = {
     "name": "SketchUp Importer",
     "author": "Martijn Berger, Sanjay Mehta, Arindam Mondal",
-    "version": (0, 23, 0),
-    "blender": (2, 93, 0),
+    "version": (0, 24, 0),
+    "blender": (4, 5, 0),
     "description": "Import of native SketchUp (.skp) files",
     # "warning": "Very early preview",
     "wiki_url": "https://github.com/martijnberger/pyslapi",
@@ -660,9 +660,9 @@ class SceneImporter():
         try:
             group = self.group_written[(name, default_material)]
             ob = bpy.data.objects.new(name=name, object_data=None)
-            ob.dupli_type = 'GROUP'
-            ob.dupli_group = group
-            ob.empty_draw_size = 0.01
+            ob.instance_type = 'COLLECTION'
+            ob.instance_collection = group
+            ob.empty_display_size = 0.01
             return ob
         except KeyError as _e:
             me, alpha = self.component_meshes[(name, default_material)]
@@ -770,7 +770,7 @@ class SceneImporter():
             dme.validate()
             dob = bpy.data.objects.new("DUPLI_" + name, dme)
             dob.location = main_loc
-            dob.dupli_type = 'VERTS'
+            dob.instance_type = 'VERTS'
 
             ob = self.instance_object_or_group(name, default_material)
             ob.scale = scale
@@ -832,12 +832,30 @@ class SceneImporter():
             dme.vertices.add(len(verts))
             dme.vertices.foreach_set("co", unpack_list(verts))
 
-            dme.tessfaces.add(f_count / 4)
-            dme.tessfaces.foreach_set("vertices_raw", unpack_face_list(faces))
-            dme.update(calc_edges=True)  # Update mesh with new data
+            num_loops = len(faces) * 4
+            num_polygons = len(faces)
+            dme.loops.add(num_loops)
+            dme.polygons.add(num_polygons)
+
+            loops = []
+            for f in faces:
+                loops.extend(f)
+
+            dme.loops.foreach_set("vertex_index", loops)
+
+            loop_start = []
+            i = 0
+            for f in faces:
+                loop_start.append(i)
+                i += len(f)
+
+            dme.polygons.foreach_set("loop_start", loop_start)
+            dme.polygons.foreach_set("loop_total", [4] * num_polygons)
+
+            dme.update(calc_edges=True)
             dme.validate()
             dob = bpy.data.objects.new("DUPLI_" + name, dme)
-            dob.dupli_type = 'FACES'
+            dob.instance_type = 'FACES'
             dob.location = main_loc
             # dob.use_dupli_faces_scale = True
             # dob.dupli_faces_scale = 10

@@ -26,6 +26,8 @@ from slapi.model.edge cimport *
 from slapi.model.layer cimport *
 from slapi.model.face cimport *
 from slapi.model.mesh_helper cimport *
+from slapi.model.environment cimport *
+from slapi.model.environments cimport *
 
 cdef class defaultdict(dict):
     default_factory = property(lambda self: object(), lambda self, v: None, lambda self: None)  # default
@@ -868,6 +870,126 @@ cdef class Material:
             else:
                 return False
 
+    property ao_enabled:
+        def __get__(self):
+            cdef bool enabled
+            check_result(SUMaterialGetAOEnabled(self.material, &enabled))
+            return enabled
+        def __set__(self, bool enabled):
+            check_result(SUMaterialSetAOEnabled(self.material, enabled))
+
+    property ao_strength:
+        def __get__(self):
+            cdef double strength
+            check_result(SUMaterialGetAOStrength(self.material, &strength))
+            return strength
+        def __set__(self, double strength):
+            check_result(SUMaterialSetAOStrength(self.material, strength))
+
+    property ao_texture:
+        def __get__(self):
+            cdef SUTextureRef t
+            t.ptr = <void*> 0
+            cdef SU_RESULT res = SUMaterialGetAOTexture(self.material, &t)
+            if res == SU_ERROR_NONE:
+                tex = Texture()
+                tex.tex_ref.ptr = t.ptr
+                return tex
+            else:
+                return False
+        def __set__(self, Texture texture):
+            check_result(SUMaterialSetAOTexture(self.material, texture.tex_ref))
+
+    property metallic_factor:
+        def __get__(self):
+            cdef double factor
+            check_result(SUMaterialGetMetallicFactor(self.material, &factor))
+            return factor
+        def __set__(self, double factor):
+            check_result(SUMaterialSetMetallicFactor(self.material, factor))
+
+    property metallic_texture:
+        def __get__(self):
+            cdef SUTextureRef t
+            t.ptr = <void*> 0
+            cdef SU_RESULT res = SUMaterialGetMetallicTexture(self.material, &t)
+            if res == SU_ERROR_NONE:
+                tex = Texture()
+                tex.tex_ref.ptr = t.ptr
+                return tex
+            else:
+                return False
+        def __set__(self, Texture texture):
+            check_result(SUMaterialSetMetallicTexture(self.material, texture.tex_ref))
+
+    property metalness_enabled:
+        def __get__(self):
+            cdef bool enabled
+            check_result(SUMaterialGetMetalnessEnabled(self.material, &enabled))
+            return enabled
+        def __set__(self, bool enabled):
+            check_result(SUMaterialSetMetalnessEnabled(self.material, enabled))
+
+    property normal_enabled:
+        def __get__(self):
+            cdef bool enabled
+            check_result(SUMaterialGetNormalEnabled(self.material, &enabled))
+            return enabled
+        def __set__(self, bool enabled):
+            check_result(SUMaterialSetNormalEnabled(self.material, enabled))
+
+    property normal_scale:
+        def __get__(self):
+            cdef double scale
+            check_result(SUMaterialGetNormalScale(self.material, &scale))
+            return scale
+        def __set__(self, double scale):
+            check_result(SUMaterialSetNormalScale(self.material, scale))
+
+    property normal_texture:
+        def __get__(self):
+            cdef SUTextureRef t
+            t.ptr = <void*> 0
+            cdef SU_RESULT res = SUMaterialGetNormalTexture(self.material, &t)
+            if res == SU_ERROR_NONE:
+                tex = Texture()
+                tex.tex_ref.ptr = t.ptr
+                return tex
+            else:
+                return False
+        def __set__(self, Texture texture):
+            check_result(SUMaterialSetNormalTexture(self.material, texture.tex_ref))
+
+    property roughness_enabled:
+        def __get__(self):
+            cdef bool enabled
+            check_result(SUMaterialGetRoughnessEnabled(self.material, &enabled))
+            return enabled
+        def __set__(self, bool enabled):
+            check_result(SUMaterialSetRoughnessEnabled(self.material, enabled))
+
+    property roughness_factor:
+        def __get__(self):
+            cdef double factor
+            check_result(SUMaterialGetRoughnessFactor(self.material, &factor))
+            return factor
+        def __set__(self, double factor):
+            check_result(SUMaterialSetRoughnessFactor(self.material, factor))
+
+    property roughness_texture:
+        def __get__(self):
+            cdef SUTextureRef t
+            t.ptr = <void*> 0
+            cdef SU_RESULT res = SUMaterialGetRoughnessTexture(self.material, &t)
+            if res == SU_ERROR_NONE:
+                tex = Texture()
+                tex.tex_ref.ptr = t.ptr
+                return tex
+            else:
+                return False
+        def __set__(self, Texture texture):
+            check_result(SUMaterialSetRoughnessTexture(self.material, texture.tex_ref))
+
 cdef class RenderingOptions:
     cdef SURenderingOptionsRef options
 
@@ -927,6 +1049,15 @@ cdef class Scene:
                 yield l
             free(layers_array)
 
+    property environments:
+        def __get__(self):
+            cdef SUEnvironmentsRef e
+            e.ptr = <void*> 0
+            check_result(SUModelGetEnvironments(self.model, &e));
+            res = Environments()
+            res.set_ptr(e.ptr)
+            return res
+
 cdef class LoopInput:
     cdef SULoopInputRef loop
 
@@ -937,6 +1068,54 @@ cdef class LoopInput:
 
     def AddVertexIndex(self, i):
         check_result(SULoopInputAddVertexIndex(self.loop, i))
+
+cdef class Environment:
+    cdef SUEnvironmentRef environment
+
+    def __cinit__(self):
+        self.environment.ptr = <void*> 0
+
+    property name:
+        def __get__(self):
+            cdef SUStringRef n
+            n.ptr = <void*> 0
+            SUStringCreate(&n)
+            check_result(SUEnvironmentGetName(self.environment, &n))
+            return StringRef2Py(n)
+
+cdef class Environments:
+    cdef SUEnvironmentsRef environments
+
+    def __cinit__(self):
+        self.environments.ptr = <void*> 0
+
+    cdef set_ptr(self, void* ptr):
+        self.environments.ptr = ptr
+
+    def __iter__(self):
+        cdef size_t num_environments = 0
+        check_result(SUEnvironmentsGetNumEnvironments(self.environments, &num_environments))
+        cdef SUEnvironmentRef*environments_array = <SUEnvironmentRef*> malloc(sizeof(SUEnvironmentRef) * num_environments)
+        for i in range(num_environments):
+            environments_array[i].ptr = <void*> 0
+        cdef size_t count = 0
+        check_result(SUEnvironmentsGetEnvironments(self.environments, num_environments, environments_array, &count))
+        for i in range(count):
+            e = Environment()
+            e.environment.ptr = environments_array[i].ptr
+            yield e
+        free(environments_array)
+
+    property current:
+        def __get__(self):
+            cdef SUEnvironmentRef e
+            e.ptr = <void*> 0
+            check_result(SUEnvironmentsGetCurrent(self.environments, &e))
+            res = Environment()
+            res.environment.ptr = e.ptr
+            return res
+        def __set__(self, Environment environment):
+            check_result(SUEnvironmentsSetCurrent(self.environments, environment.environment))
 
 cdef class Model:
     cdef SUModelRef model

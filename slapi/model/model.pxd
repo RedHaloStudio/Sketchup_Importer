@@ -92,3 +92,6 @@ cdef extern from "SketchUpAPI/model/model.h":
     SU_RESULT SUModelGetNumFonts(SUModelRef model, size_t* count)
     SU_RESULT SUModelGetFonts(SUModelRef model, size_t len, SUFontRef fonts[], size_t* count)
     SU_RESULT SUModelGetDimensionStyle(SUModelRef model, SUDimensionStyleRef* style)
+
+    # since SketchUp 2025, API 9.0
+    SU_RESULT SUModelGetEnvironments(SUModelRef model, SUEnvironmentsRef* environments)
