@@ -165,7 +165,7 @@ class SceneImporter():
             skp_log(f'Importing: {self.filepath}')
 
         addon_name = __name__.split('.')[0]
-        self.prefs = context.preferences.addons[addon_name].preferences
+        self.prefs = context.preferences.addons[__package__].preferences
 
         _time_main = time.time()
 
