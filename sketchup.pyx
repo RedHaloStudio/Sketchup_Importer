@@ -651,8 +651,7 @@ cdef class Face:
                 ind = int(i)
                 uv_list.append((stq[ind].x / z * self.s_scale, stq[ind].y / z * self.t_scale))
             triangles_list = []
-            # for ii in range(index_count / 3):
-            for ii in range(int(index_count / 3)):
+            for ii in range(index_count // 3):
                 ind = int(ii * 3)
                 triangles_list.append((indices[ind], indices[ind + 1], indices[ind + 2]))
             free(vertices)
@@ -944,6 +943,7 @@ cdef class Model:
 
     def __cinit__(self, **kwargs):
         self.model.ptr = <void*> 0
+        SUInitialize()
         if not '__skip_init' in kwargs:
             check_result(SUModelCreate(&(self.model)))
 
@@ -960,6 +960,10 @@ cdef class Model:
         cdef const char* f = py_byte_string
         check_result(SUModelSaveToFile(self.model, f))
         return True
+
+    def close(self):
+        SUModelRelease(&self.model)
+        SUTerminate()
 
     def NumMaterials(self):
         cdef size_t count = 0

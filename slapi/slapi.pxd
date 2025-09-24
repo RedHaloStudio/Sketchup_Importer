@@ -5,7 +5,7 @@ from .unicodestring cimport *
 
 cdef extern from "SketchUpAPI/slapi.h":
     cdef enum SUResult:
-        SU_ERROR_NONE = 0               #Indicates success
+        SU_ERROR_NONE = 0               # Indicates success
         SU_ERROR_NULL_POINTER_INPUT     # A pointer for a required input was NULL.
         SU_ERROR_INVALID_INPUT          # An API object input to the function was not created properly.
         SU_ERROR_NULL_POINTER_OUTPUT    # A pointer for a required output was NULL.

@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = [
+    "slapi_rs",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+repository = "https://github.com/yourusername/slapi_rs"
+
+[workspace.dependencies]
+thiserror = "2.0.12"
+bindgen = "0.71.1"
+anyhow = "1.0.98"

@@ -1,0 +1,17 @@
+[package]
+name = "slapi_rs"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for the SketchUp API"
+license = "MIT"
+repository = "https://github.com/yourusername/slapi_rs"
+readme = "README.md"
+
+[dependencies]
+thiserror = "2.0.12"
+
+[build-dependencies]
+bindgen = "0.71.1"
+
+[dev-dependencies]
+anyhow = "1.0.75"
