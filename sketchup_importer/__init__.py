@@ -409,6 +409,7 @@ class SceneImporter:
             bmat = bpy.data.materials.new("Material")
             bmat.diffuse_color = (0.8, 0.8, 0.8, 0)
             # if self.render_engine == 'CYCLES':
+            # this modthed will remove 6.0.0
             if bpy.app.version < (6, 0, 0):
                 bmat.use_nodes = True
 
