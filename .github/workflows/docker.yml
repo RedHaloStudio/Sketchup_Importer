@@ -1,0 +1,66 @@
+name: Build and push Docker image
+
+on:
+  push:
+    branches: [skp2blend]
+    paths:
+      - "skp2blend/**"
+      - ".github/workflows/docker.yml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/skp2blend
+  SDK_RELEASE_URL: https://github.com/RedHaloStudio/Sketchup_Importer/releases/download/0.27.0/sketchup_importer-0.27.zip
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download SketchUp SDK from upstream release
+        run: |
+          wget -qO /tmp/sdk.zip "$SDK_RELEASE_URL"
+          unzip -q /tmp/sdk.zip -d /tmp/sdk
+
+          # Place DLLs where the Dockerfile expects them
+          mkdir -p skp2blend/sketchup_sdk/binaries/sketchup/x64
+          cp /tmp/sdk/sketchup_importer/SketchUpAPI.dll \
+             /tmp/sdk/sketchup_importer/SketchUpCommonPreferences.dll \
+             skp2blend/sketchup_sdk/binaries/sketchup/x64/
+
+          # Place the Python 3.11 compiled extension
+          cp /tmp/sdk/sketchup_importer/sketchup.cp311-win_amd64.pyd \
+             skp2blend/sketchup.pyd
+
+          rm -rf /tmp/sdk /tmp/sdk.zip
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: skp2blend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
