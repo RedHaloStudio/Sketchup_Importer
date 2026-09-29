@@ -590,7 +590,13 @@ class SceneImporter:
                 #     alpha = True
                 try:
                     # if self.render_engine == 'CYCLES':
-                    if "Image Texture" in bmat.node_tree.nodes.keys():
+                    # Node names are localized with the UI language (e.g. "图像纹理"
+                    # in Chinese), so "Image Texture" never matches on non-English
+                    # UIs and UV layers are silently never written. Match by the
+                    # locale-independent bl_idname instead.
+                    if bmat.node_tree is not None and any(
+                        n.bl_idname == "ShaderNodeTexImage" for n in bmat.node_tree.nodes
+                    ):
                         uvs_used = True
                     # else:
                     #     for ts in bmat.texture_slots:
